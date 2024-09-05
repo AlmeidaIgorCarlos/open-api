@@ -1,0 +1,86 @@
+openapi: "3.0.1"
+
+info:
+  title: "Practicing openAPI document"
+  description:
+    > # multiline string we can use > or |
+    I have never contributted to a project that I had to write openAPI documents
+    by myself, always used a library to do it by @annotations. This project was created
+    with the goal to have something to practice and memorize the openAPI specification
+  version: "1.0.0" # version of the documentation, not the version of the openAPI specification
+
+servers:
+  - url: "https://www.{stage}.openapi.com" # declaring a list of objects, this object has 2 props
+
+    # sometimes an object can have the name of a list but in reality it stores the "list" as props of an object
+    variables: # when we declare a template string we MUST also declare the variable definition
+      stage:
+        default: development
+        enum: # simple list with scalar values
+          - development
+          - production
+
+# resources provided by our API.
+# Paths is a case that has the name of a list but in reality is an object
+paths:
+  /is-alive: # endpoint path
+    get: # http verb
+      operationId: checkStatus
+      tags: [is-alive]
+      summary: endpoint which returns the current status of the application
+      responses: # every enpoint must have a response -> status code > content-type > schema
+        "200":
+          description: status when the application is running normally
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: number
+                    example: 200
+                  description:
+                    type: string
+                    example: "OK - app is running normally"
+
+  /auth/token:
+    post:
+      summary: endpoint that generates de JWT to access the application
+      operationId: authenticate
+      tags: [auth]
+      requestBody: # parameters in url or path we use the property "parameters" to parameters in body we use "requestBody"
+        # allways follow the sequence requestBody -> content -> schema -> example
+        description: object with the necessary information to authenticate the user
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+              required:
+                - username
+                - password
+            example:
+              username: user@email.com
+              password: pass123
+
+      responses:
+        "200": # the only difference in the response to requestBody is the status code
+          description: response in case the credentials were correct, resulting in the access_token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  access_token:
+                    type: string
+                    example: "token.example.123"
+
+tags:
+  - name: is-alive
+    description: path with the goal to provide data about the current status of the app
+  - name: auth
+    description: path with the goal provide security resources to the client
