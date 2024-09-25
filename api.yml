@@ -2,8 +2,7 @@ openapi: "3.0.1"
 
 info:
   title: "Practicing openAPI document"
-  description:
-    > # multiline string we can use > or |
+  description: > # multiline string we can use > or |
     I have never contributted to a project that I had to write openAPI documents
     by myself, always used a library to do it by @annotations. This project was created
     with the goal to have something to practice and memorize the openAPI specification
@@ -50,37 +49,143 @@ paths:
       tags: [auth]
       requestBody: # parameters in url or path we use the property "parameters" to parameters in body we use "requestBody"
         # allways follow the sequence requestBody -> content -> schema -> example
-        description: object with the necessary information to authenticate the user
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                username:
-                  type: string
-                password:
-                  type: string
-              required:
-                - username
-                - password
-            example:
-              username: user@email.com
-              password: pass123
-
+        $ref: "#/components/requestBodies/authTokenRequest"
       responses:
         "200": # the only difference in the response to requestBody is the status code
-          description: response in case the credentials were correct, resulting in the access_token
+          description: response when the token is ok
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  access_token:
-                    type: string
-                    example: "token.example.123"
+                $ref: "#/components/schemas/authTokenResponseSchema"
+              examples:
+                firstExampleResponse:
+                  $ref: "#/components/examples/authTokenResponseExample"
+
+  /user/{id}:
+    get:
+      summary: endpoint to search for a specific user by its id
+      operationId: getUserById
+      tags:
+        - user
+      parameters:
+        - name: id
+          in: path
+          description: Id of the desired user
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: response body in case the request was ok
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/getUserResponseSchema"
+              examples:
+                userByIdResponseExample:
+                  $ref: "#/components/examples/getUserByIdResponseExample"
+
+  /user:
+    get:
+      operationId: getUser
+      summary: endpoint to search for an user using multiple parameters
+      tags:
+        - user
+      parameters:
+        - name: firstName
+          in: query
+          description: first name of the user
+          schema:
+            type: string
+        - name: lastName
+          in: query
+          description: last name of the user
+          schema:
+            type: string
+      responses:
+        "200":
+          description: user response searched by multiple parameters
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/getUserResponseSchema"
+              examples:
+                getUserResponseExample:
+                  $ref: "#/components/examples/getUserResponseExample"
+components:
+  requestBodies:
+    authTokenRequest:
+      description: object with the necessary information to authenticate the user
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/authTokenRequestSchema"
+          examples:
+            firstExample:
+              $ref: "#/components/examples/authTokenRequestFirstExample"
+            secondExample:
+              $ref: "#/components/examples/authTokenRequestSecondExample"
+
+  schemas:
+    authTokenRequestSchema:
+      type: object
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+      required:
+        - email
+        - password
+    authTokenResponseSchema:
+      type: object
+      properties:
+        access_token:
+          type: string
+
+    getUserResponseSchema:
+      type: object
+      properties:
+        id:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+
+  examples:
+    authTokenRequestFirstExample:
+      summary: first example
+      value:
+        email: first@gmail.com
+        password: 123@123
+    authTokenRequestSecondExample:
+      summary: second example
+      value:
+        email: second@gmail.com
+        password: 123@123
+    authTokenResponseExample:
+      summary: first example when the request was OK
+      value:
+        token: 123.123.123
+
+    getUserByIdResponseExample:
+      summary: user steve
+      value:
+        id: 1
+        firstName: steve
+        lastName: jobs
+    getUserResponseExample:
+      summary: user mark
+      value:
+        id: 2
+        firstName: mark
+        lastName: zuckerberg
 
 tags:
   - name: is-alive
     description: path with the goal to provide data about the current status of the app
   - name: auth
     description: path with the goal provide security resources to the client
+  - name: user
+    description: path with the goal to provide access to the user entity
